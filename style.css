@@ -1638,6 +1638,7 @@ footer {
   transform: translateX(120%);
   transition: transform var(--transition-normal);
   max-width: 300px;
+  margin-top: 65px;
 }
 
 .notification.show {
