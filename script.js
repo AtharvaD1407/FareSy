@@ -200,16 +200,6 @@ const generateMockCabData = (pickup, destination) => {
       distance: baseDistance.toFixed(1),
     },
     {
-      name: "Bolt",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Bolt_logo.svg/240px-Bolt_logo.svg.png",
-      price: (basePrice * 0.9).toFixed(2),
-      priceChange: "-15%",
-      currency: "$",
-      eta: Math.floor(Math.random() * 6) + 4,
-      type: "Bolt Standard",
-      distance: baseDistance.toFixed(1),
-    },
-    {
       name: "Cabify",
       logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Cabify_logo.svg/240px-Cabify_logo.svg.png",
       price: (basePrice * 1.05).toFixed(2),
@@ -217,16 +207,6 @@ const generateMockCabData = (pickup, destination) => {
       currency: "$",
       eta: Math.floor(Math.random() * 4) + 3,
       type: "Lite",
-      distance: baseDistance.toFixed(1),
-    },
-    {
-      name: "Didi",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Didi_Chuxing_logo.svg/240px-Didi_Chuxing_logo.svg.png",
-      price: (basePrice * 1.02).toFixed(2),
-      priceChange: "-7%",
-      currency: "$",
-      eta: Math.floor(Math.random() * 5) + 2,
-      type: "Express",
       distance: baseDistance.toFixed(1),
     },
   ];
@@ -240,9 +220,6 @@ const displayCabCards = (cabData) => {
   // Sort by price (lowest first)
   cabData.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
 
-  // Flag the cheapest option
-  cabData[0].cheapest = true;
-
   // Create cab cards with staggered animation
   cabData.forEach((cab, index) => {
     const cabCard = document.createElement("div");
@@ -251,41 +228,26 @@ const displayCabCards = (cabData) => {
 
     let cabCardHTML = `
                     <div class="cab-card-header">
-                        <img src="${cab.logo}" alt="${
-      cab.name
-    }" class="cab-logo">
+                        <img src="${cab.logo}" alt="${cab.name}" class="cab-logo">
                         <span>${cab.name}</span>
                     </div>
                     <div class="cab-card-body">
-                        ${
-                          cab.cheapest
-                            ? '<div class="cheapest-tag">Cheapest Option</div>'
-                            : ""
-                        }
                         <div class="cab-price">
                             ${cab.currency}${cab.price}
-                            <span class="cab-price-change">${
-                              cab.priceChange
-                            }</span>
+                            <span class="cab-price-change">${cab.priceChange}</span>
                         </div>
                         <div class="cab-details">
                             <div class="cab-detail">
                                 <span class="cab-detail-label">Type</span>
-                                <span class="cab-detail-value">${
-                                  cab.type
-                                }</span>
+                                <span class="cab-detail-value">${cab.type}</span>
                             </div>
                             <div class="cab-detail">
                                 <span class="cab-detail-label">ETA</span>
-                                <span class="cab-detail-value">${
-                                  cab.eta
-                                } min</span>
+                                <span class="cab-detail-value">${cab.eta} min</span>
                             </div>
                             <div class="cab-detail">
                                 <span class="cab-detail-label">Distance</span>
-                                <span class="cab-detail-value">${
-                                  cab.distance
-                                } miles</span>
+                                <span class="cab-detail-value">${cab.distance} miles</span>
                             </div>
                         </div>
                         <a href="#" class="btn btn-icon">
