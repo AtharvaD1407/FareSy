@@ -456,6 +456,9 @@ const setupSmoothScrolling = () => {
 };
 
 // Login and Signup Modal Functionality
+
+const API_URL = "http://localhost:5000"; // Update with actual API URL
+
 const setupModals = () => {
   const loginModal = document.getElementById("login-modal");
   const signupModal = document.getElementById("signup-modal");
@@ -466,16 +469,12 @@ const setupModals = () => {
 
   const showModal = (modal) => {
     modal.style.display = "block";
-    setTimeout(() => {
-      modal.classList.add("show");
-    }, 10);
+    setTimeout(() => modal.classList.add("show"), 10);
   };
 
   const hideModal = (modal) => {
     modal.classList.remove("show");
-    setTimeout(() => {
-      modal.style.display = "none";
-    }, 300);
+    setTimeout(() => (modal.style.display = "none"), 300);
   };
 
   loginBtn.onclick = () => showModal(loginModal);
@@ -483,17 +482,13 @@ const setupModals = () => {
   signupLink.onclick = (e) => {
     e.preventDefault();
     hideModal(loginModal);
-    setTimeout(() => {
-      showModal(signupModal);
-    }, 300);
+    setTimeout(() => showModal(signupModal), 300);
   };
 
   loginLink.onclick = (e) => {
     e.preventDefault();
     hideModal(signupModal);
-    setTimeout(() => {
-      showModal(loginModal);
-    }, 300);
+    setTimeout(() => showModal(loginModal), 300);
   };
 
   closeBtns.forEach((btn) => {
@@ -510,252 +505,164 @@ const setupModals = () => {
   };
 };
 
-// Form Validation
 const setupFormValidation = () => {
   const loginForm = document.getElementById("login-form");
   const signupForm = document.getElementById("signup-form");
 
-  loginForm.addEventListener("submit", function (e) {
+  loginForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
-    let isValid = true;
 
-    // Reset errors
-    document.getElementById("username-error").style.display = "none";
-    document.getElementById("password-error").style.display = "none";
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (!username) {
-      document.getElementById("username-error").style.display = "block";
-      isValid = false;
-    }
+      const data = await response.json();
 
-    if (!password) {
-      document.getElementById("password-error").style.display = "block";
-      isValid = false;
-    }
-
-    if (isValid) {
-      // Check if user exists in local storage
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      const user = users.find(
-        (u) => u.username === username && u.password === password
-      );
-
-      if (user) {
-        // Show success message
+      if (response.ok) {
+        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
         document.getElementById("login-success").style.display = "block";
-
-        // Store logged in user
-        localStorage.setItem("loggedInUser", JSON.stringify(user));
-
-        // Update UI
-        updateUserUI(user);
-
-        // Close modal after delay
-        setTimeout(() => {
-          hideModal(document.getElementById("login-modal"));
-          showNotification(
-            "Welcome back!",
-            `You're now logged in as ${username}`,
-            "success"
-          );
-        }, 1000);
-      } else {
-        showNotification(
-          "Login Failed",
-          "Invalid username or password",
-          "error"
+        setTimeout(
+          () => hideModal(document.getElementById("login-modal")),
+          1000
         );
+        updateUserUI(data.user);
+      } else {
+        showNotification("Error", data.error || "Login failed", "error");
       }
+    } catch (error) {
+      showNotification("Error", "Network error, please try again", "error");
     }
   });
 
-  signupForm.addEventListener("submit", function (e) {
+  signupForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     const username = document.getElementById("new-username").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("new-password").value;
     const confirmPassword = document.getElementById("confirm-password").value;
-    let isValid = true;
-
-    // Reset errors
-    document.getElementById("new-username-error").style.display = "none";
-    document.getElementById("email-error").style.display = "none";
-    document.getElementById("new-password-error").style.display = "none";
-    document.getElementById("confirm-password-error").style.display = "none";
-
-    if (!username || username.length < 3) {
-      document.getElementById("new-username-error").style.display = "block";
-      isValid = false;
-    }
-
-    if (!email || !email.includes("@")) {
-      document.getElementById("email-error").style.display = "block";
-      isValid = false;
-    }
-
-    if (!password || password.length < 6) {
-      document.getElementById("new-password-error").style.display = "block";
-      isValid = false;
-    }
 
     if (password !== confirmPassword) {
-      document.getElementById("confirm-password-error").style.display = "block";
-      isValid = false;
+      showNotification("Error", "Passwords do not match", "error");
+      return;
     }
 
-    if (isValid) {
-      // Check if username already exists
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      if (users.some((u) => u.username === username)) {
-        document.getElementById("new-username-error").textContent =
-          "Username already exists";
-        document.getElementById("new-username-error").style.display = "block";
-        return;
-      }
+    try {
+      const response = await fetch(`${API_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
 
-      // Add new user to local storage
-      const newUser = { username, email, password };
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
+      const data = await response.json();
 
-      // Show success message
-      document.getElementById("signup-success").style.display = "block";
-
-      // Close modal and show login after delay
-      setTimeout(() => {
-        hideModal(document.getElementById("signup-modal"));
+      if (response.ok) {
         showNotification(
-          "Account Created",
-          "Your account has been created successfully!",
+          "Success",
+          "Account created! Please log in.",
           "success"
         );
-        setTimeout(() => {
-          showModal(document.getElementById("login-modal"));
-        }, 1000);
-      }, 1000);
+        setTimeout(
+          () => showModal(document.getElementById("login-modal")),
+          1000
+        );
+      } else {
+        showNotification("Error", data.error || "Signup failed", "error");
+      }
+    } catch (error) {
+      showNotification("Error", "Network error, please try again", "error");
     }
   });
 };
 
-// Update UI for logged in user
 const updateUserUI = (user) => {
   const loginBtn = document.getElementById("login-btn");
   const userMenu = document.getElementById("user-menu");
   const userAvatar = document.getElementById("user-avatar");
-  const userAvatarPlaceholder = userAvatar.querySelector(
+  const userAvatarPlaceholder = document.querySelector(
     ".user-avatar-placeholder"
   );
 
-  // Hide login button
   loginBtn.style.display = "none";
-
-  // Show user menu
   userMenu.style.display = "block";
 
-  // Update avatar placeholder with user initials
-  const initials = user.username.substring(0, 2).toUpperCase();
-  userAvatarPlaceholder.textContent = initials;
+  userAvatarPlaceholder.textContent = user.username
+    .substring(0, 2)
+    .toUpperCase();
 
-  // Setup user dropdown
   const userDropdown = document.getElementById("user-dropdown");
-  userAvatar.addEventListener("click", () => {
+
+  userAvatar.style.pointerEvents = "auto";
+  userAvatar.style.zIndex = "1000";
+
+  userAvatar.addEventListener("click", (e) => {
+    e.stopPropagation();
     userDropdown.classList.toggle("active");
   });
 
-  // Close dropdown when clicking outside
   document.addEventListener("click", (e) => {
     if (!userAvatar.contains(e.target) && !userDropdown.contains(e.target)) {
       userDropdown.classList.remove("active");
     }
   });
 
-  // Logout functionality
   document.getElementById("logout-btn").addEventListener("click", (e) => {
     e.preventDefault();
     localStorage.removeItem("loggedInUser");
     userMenu.style.display = "none";
     loginBtn.style.display = "block";
     userDropdown.classList.remove("active");
-    showNotification(
-      "Logged Out",
-      "You have been logged out successfully",
-      "info"
-    );
+    showNotification("Info", "You have logged out successfully", "info");
   });
 };
 
-// Check if user is logged in
-const checkLoggedInStatus = () => {
+const checkLoggedInStatus = async () => {
   const loggedInUser = localStorage.getItem("loggedInUser");
+
   if (loggedInUser) {
     updateUserUI(JSON.parse(loggedInUser));
+  } else {
+    try {
+      const response = await fetch(`${API_URL}/users`);
+      const users = await response.json();
+
+      if (users.length > 0) {
+        updateUserUI(users[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
   }
 };
 
-// Show notification
 const showNotification = (title, message, type = "info") => {
   const notification = document.getElementById("notification");
-  const notificationTitle = notification.querySelector(".notification-title");
-  const notificationMessage = notification.querySelector(
-    ".notification-message"
-  );
-  const notificationIcon = notification.querySelector(".notification-icon svg");
+  notification.querySelector(".notification-title").textContent = title;
+  notification.querySelector(".notification-message").textContent = message;
 
-  // Set content
-  notificationTitle.textContent = title;
-  notificationMessage.textContent = message;
-
-  // Set type
-  notification.className = "notification";
-  notification.classList.add(`notification-${type}`);
-
-  // Set icon based on type
-  switch (type) {
-    case "success":
-      notificationIcon.innerHTML = `
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    `;
-      break;
-    case "error":
-      notificationIcon.innerHTML = `
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    `;
-      break;
-    case "warning":
-      notificationIcon.innerHTML = `
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                        <line x1="12" y1="9" x2="12" y2="13"></line>
-                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    `;
-      break;
-    default:
-      notificationIcon.innerHTML = `
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    `;
-  }
-
-  // Show notification
+  notification.className = "notification notification-" + type;
   notification.classList.add("show");
 
-  // Hide after 5 seconds
   setTimeout(() => {
     notification.classList.remove("show");
   }, 5000);
 
-  // Close button
   notification
     .querySelector(".notification-close")
     .addEventListener("click", () => {
       notification.classList.remove("show");
     });
+
+  notification.style.zIndex = "9999"; // Ensures it's above the blur effect
 };
+
+setupModals();
+setupFormValidation();
+checkLoggedInStatus();
 
 // Theme toggle
 const setupThemeToggle = () => {
