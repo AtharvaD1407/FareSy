@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Booking Confirmation</title>
+    <link rel="stylesheet" href="book.css" />
+  </head>
+  <body class="dark-mode">
+    <div class="container">
+      <header>
+        <h1>Booking Confirmation</h1>
+        <p>Your cab has been booked successfully</p>
+      </header>
+
+      <main>
+        <section id="booking-details">
+          <div class="booking-header">
+            <h2>Booking #<span id="booking-id">CAB12345</span></h2>
+            <div class="booking-status">Confirmed</div>
+          </div>
+
+          <div class="details-grid">
+            <div class="details-card" id="user-details">
+              <h3>User Details</h3>
+              <div class="details-content">
+                <p>
+                  <strong>Name:</strong> <span id="user-name">John Doe</span>
+                </p>
+                <p>
+                  <strong>Phone:</strong>
+                  <span id="user-phone">555-123-4567</span>
+                </p>
+                <p>
+                  <strong>Email:</strong>
+                  <span id="user-email">john.doe@example.com</span>
+                </p>
+              </div>
+            </div>
+
+            <div class="details-card" id="driver-details">
+              <h3>Driver Details</h3>
+              <div class="details-content">
+                <div class="driver-profile">
+                  <div class="driver-avatar"></div>
+                  <div class="driver-info">
+                    <p class="driver-name" id="driver-name">Michael Chen</p>
+                    <p class="driver-rating">
+                      <span id="driver-rating">4.8</span>
+                      <span class="stars">★★★★★</span>
+                    </p>
+                  </div>
+                </div>
+                <p>
+                  <strong>License:</strong>
+                  <span id="driver-license">DL-987654</span>
+                </p>
+                <p>
+                  <strong>Phone:</strong>
+                  <span id="driver-phone">555-987-6543</span>
+                </p>
+                <p>
+                  <strong>Experience:</strong>
+                  <span id="driver-experience">5 years</span>
+                </p>
+              </div>
+            </div>
+
+            <div class="details-card" id="cab-details">
+              <h3>Cab Details</h3>
+              <div class="details-content">
+                <div class="cab-image"></div>
+                <p>
+                  <strong>Vehicle:</strong>
+                  <span id="cab-model">Toyota Camry</span>
+                </p>
+                <p><strong>Color:</strong> <span id="cab-color">White</span></p>
+                <p>
+                  <strong>License Plate:</strong>
+                  <span id="cab-plate">ABC 123</span>
+                </p>
+                <p><strong>ETA:</strong> <span id="cab-eta">7 minutes</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="trip-details">
+            <h3>Trip Details</h3>
+            <div class="trip-points">
+              <div class="trip-point">
+                <div class="point-marker pickup"></div>
+                <div class="point-details">
+                  <p class="point-type">Pickup</p>
+                  <p class="point-address" id="pickup-address">
+                    123 Main Street, Cityville
+                  </p>
+                  <p class="point-time" id="pickup-time">Today, 2:30 PM</p>
+                </div>
+              </div>
+              <div class="trip-line"></div>
+              <div class="trip-point">
+                <div class="point-marker dropoff"></div>
+                <div class="point-details">
+                  <p class="point-type">Destination</p>
+                  <p class="point-address" id="destination-address">
+                    456 Park Avenue, Townsville
+                  </p>
+                  <p class="point-time" id="destination-time">
+                    Today, 3:15 PM (estimated)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="map-container">
+            <h3>Your Route</h3>
+            <div id="map"></div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="contact-driver">Contact Driver</button>
+            <button id="cancel-booking">Cancel Booking</button>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>&copy; 2025 QuickCab. All rights reserved.</p>
+        <div class="nav-links">
+          <a href="profile.html">My Profile</a>
+          <a href="#">My Rides</a>
+          <a href="#">Support</a>
+        </div>
+      </footer>
+    </div>
+
+    <script src="book.js"></script>
+  </body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Profile</title>
+    <link rel="stylesheet" href="profile.css" />
+  </head>
+  <body class="dark-mode">
+    <div class="container">
+      <header>
+        <div class="logo">FareSy</div>
+        <nav>
+          <ul>
+            <li><a href="book.html">My Bookings</a></li>
+            <li><a href="#" class="active">Profile</a></li>
+            <li><a href="#">Support</a></li>
+            <li><a href="#" class="logout-btn">Logout</a></li>
+          </ul>
+        </nav>
+      </header>
+
+      <main>
+        <section class="profile-header">
+          <div class="profile-cover"></div>
+          <div class="profile-info">
+            <div class="profile-avatar"></div>
+            <div class="profile-details">
+              <h1 id="user-name">John Doe</h1>
+              <p id="user-email">john.doe@example.com</p>
+              <div class="profile-stats">
+                <div class="stat">
+                  <span class="stat-value" id="total-rides">24</span>
+                  <span class="stat-label">Rides</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value" id="member-since">2023</span>
+                  <span class="stat-label">Member Since</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value" id="saved-places">5</span>
+                  <span class="stat-label">Saved Places</span>
+                </div>
+              </div>
+            </div>
+            <button id="edit-profile">Edit Profile</button>
+          </div>
+        </section>
+
+        <div class="profile-tabs">
+          <button class="tab-btn active" data-tab="personal-info">
+            Personal Info
+          </button>
+          <button class="tab-btn" data-tab="ride-history">Ride History</button>
+          <button class="tab-btn" data-tab="payment-methods">
+            Payment Methods
+          </button>
+          <button class="tab-btn" data-tab="saved-places">Saved Places</button>
+          <button class="tab-btn" data-tab="preferences">Preferences</button>
+        </div>
+
+        <section class="tab-content active" id="personal-info">
+          <h2>Personal Information</h2>
+          <div class="info-card">
+            <div class="info-group">
+              <label>Full Name</label>
+              <p id="full-name">John Michael Doe</p>
+            </div>
+            <div class="info-group">
+              <label>Phone Number</label>
+              <p id="phone-number">+1 (555) 123-4567</p>
+            </div>
+            <div class="info-group">
+              <label>Email Address</label>
+              <p id="email-address">john.doe@example.com</p>
+            </div>
+            <div class="info-group">
+              <label>Date of Birth</label>
+              <p id="date-of-birth">January 15, 1985</p>
+            </div>
+            <div class="info-group">
+              <label>Home Address</label>
+              <p id="home-address">
+                123 Main Street, Apt 4B, Cityville, NY 10001
+              </p>
+            </div>
+            <div class="info-group">
+              <label>Emergency Contact</label>
+              <p id="emergency-contact">Jane Doe - +1 (555) 987-6543</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-content" id="ride-history">
+          <h2>Ride History</h2>
+          <div class="filter-bar">
+            <div class="search-box">
+              <input type="text" placeholder="Search rides..." />
+              <button class="search-btn">Search</button>
+            </div>
+            <div class="filter-options">
+              <select id="time-filter">
+                <option value="all">All Time</option>
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+              </select>
+              <select id="status-filter">
+                <option value="all">All Status</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rides-list" id="rides-container">
+            <!-- Ride history items will be populated by JavaScript -->
+          </div>
+        </section>
+
+        <section class="tab-content" id="payment-methods">
+          <h2>Payment Methods</h2>
+          <div class="payment-methods-container">
+            <div class="payment-cards" id="payment-cards-container">
+              <!-- Payment cards will be populated by JavaScript -->
+            </div>
+
+            <button id="add-payment-method" class="add-btn">
+              <span class="plus-icon">+</span>
+              Add Payment Method
+            </button>
+          </div>
+        </section>
+
+        <section class="tab-content" id="saved-places">
+          <h2>Saved Places</h2>
+          <div class="saved-places-container" id="saved-places-container">
+            <!-- Saved places will be populated by JavaScript -->
+          </div>
+
+          <button id="add-saved-place" class="add-btn">
+            <span class="plus-icon">+</span>
+            Add New Place
+          </button>
+        </section>
+
+        <section class="tab-content" id="preferences">
+          <h2>Preferences</h2>
+          <div class="preferences-container">
+            <div class="preference-card">
+              <h3>App Settings</h3>
+              <div class="preference-item">
+                <span>Dark Mode</span>
+                <label class="toggle">
+                  <input type="checkbox" id="dark-mode-toggle" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="preference-item">
+                <span>Push Notifications</span>
+                <label class="toggle">
+                  <input type="checkbox" id="notifications-toggle" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="preference-item">
+                <span>Email Receipts</span>
+                <label class="toggle">
+                  <input type="checkbox" id="email-receipts-toggle" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="preference-card">
+              <h3>Ride Preferences</h3>
+              <div class="preference-item">
+                <span>Preferred Car Type</span>
+                <select id="preferred-car-type">
+                  <option value="economy">Economy</option>
+                  <option value="comfort" selected>Comfort</option>
+                  <option value="premium">Premium</option>
+                  <option value="suv">SUV</option>
+                </select>
+              </div>
+              <div class="preference-item">
+                <span>Quiet Rides</span>
+                <label class="toggle">
+                  <input type="checkbox" id="quiet-rides-toggle" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="preference-item">
+                <span>Temperature</span>
+                <div class="temperature-slider">
+                  <span>Cool</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    value="3"
+                    id="temperature-slider"
+                  />
+                  <span>Warm</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="preference-card">
+              <h3>Privacy Settings</h3>
+              <div class="preference-item">
+                <span>Share Ride Status</span>
+                <label class="toggle">
+                  <input type="checkbox" id="share-ride-toggle" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="preference-item">
+                <span>Location Services</span>
+                <label class="toggle">
+                  <input type="checkbox" id="location-toggle" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="preference-item">
+                <span>Data Analytics</span>
+                <label class="toggle">
+                  <input type="checkbox" id="analytics-toggle" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="save-preferences">
+            <button id="save-preferences-btn">Save Preferences</button>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>FareSy</h3>
+            <p>Fast, reliable transportation at your fingertips</p>
+          </div>
+          <div class="footer-section">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="#">About Us</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h3>Contact Us</h3>
+            <p>Email: atharvadhemare@gmail.com</p>
+            <p>Phone: +1 (555) 123-4567</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 FareSy. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+
+    <script src="profile.js"></script>
+  </body>
+</html>

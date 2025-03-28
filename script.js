@@ -250,7 +250,7 @@ const displayCabCards = (cabData) => {
                                 <span class="cab-detail-value">${cab.distance} miles</span>
                             </div>
                         </div>
-                        <a href="#" class="btn btn-icon">
+                        <a href="Pages/Book/book.html" class="btn btn-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="1" y="3" width="15" height="13"></rect>
                                 <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
@@ -510,7 +510,7 @@ const setupModals = () => {
   };
 };
 
-// Form Validation
+// Form Validation and API Interaction
 const setupFormValidation = () => {
   const loginForm = document.getElementById("login-form");
   const signupForm = document.getElementById("signup-form");
@@ -524,6 +524,7 @@ const setupFormValidation = () => {
     // Reset errors
     document.getElementById("username-error").style.display = "none";
     document.getElementById("password-error").style.display = "none";
+    document.getElementById("login-success").style.display = "none"; // Hide success message on new submit
 
     if (!username) {
       document.getElementById("username-error").style.display = "block";
@@ -536,38 +537,52 @@ const setupFormValidation = () => {
     }
 
     if (isValid) {
-      // Check if user exists in local storage
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      const user = users.find(
-        (u) => u.username === username && u.password === password
-      );
+      // Send login request to backend
+      fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (response.ok) {
+            // Login successful
+            document.getElementById("login-success").style.display = "block";
 
-      if (user) {
-        // Show success message
-        document.getElementById("login-success").style.display = "block";
+            // Store logged in user (Consider session/token based auth for real app)
+            localStorage.setItem("loggedInUser", JSON.stringify(data.user));
 
-        // Store logged in user
-        localStorage.setItem("loggedInUser", JSON.stringify(user));
+            // Update UI
+            updateUserUI(data.user);
 
-        // Update UI
-        updateUserUI(user);
-
-        // Close modal after delay
-        setTimeout(() => {
-          hideModal(document.getElementById("login-modal"));
+            // Close modal and show welcome message
+            setTimeout(() => {
+              hideModal(document.getElementById("login-modal"));
+              showNotification(
+                "Welcome back!",
+                `You're now logged in as ${data.user.username}`, // Using username from response
+                "success"
+              );
+            }, 1000);
+          } else {
+            // Login failed
+            showNotification(
+              "Login Failed",
+              data.message || "Invalid username or password",
+              "error"
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error during login:", error);
           showNotification(
-            "Welcome back!",
-            `You're now logged in as ${username}`,
-            "success"
+            "Login Error",
+            "Failed to connect to server",
+            "error"
           );
-        }, 1000);
-      } else {
-        showNotification(
-          "Login Failed",
-          "Invalid username or password",
-          "error"
-        );
-      }
+        });
     }
   });
 
@@ -577,6 +592,10 @@ const setupFormValidation = () => {
     const email = document.getElementById("email").value;
     const password = document.getElementById("new-password").value;
     const confirmPassword = document.getElementById("confirm-password").value;
+    // Get name field if you added it to your signup form in HTML
+    const name = document.getElementById("name")
+      ? document.getElementById("name").value
+      : ""; // Optional name field
     let isValid = true;
 
     // Reset errors
@@ -584,6 +603,9 @@ const setupFormValidation = () => {
     document.getElementById("email-error").style.display = "none";
     document.getElementById("new-password-error").style.display = "none";
     document.getElementById("confirm-password-error").style.display = "none";
+    document.getElementById("signup-success").style.display = "none"; // Hide success message on new submit
+    if (document.getElementById("name-error"))
+      document.getElementById("name-error").style.display = "none"; // Reset name error if present
 
     if (!username || username.length < 3) {
       document.getElementById("new-username-error").style.display = "block";
@@ -604,42 +626,66 @@ const setupFormValidation = () => {
       document.getElementById("confirm-password-error").style.display = "block";
       isValid = false;
     }
+    if (!name) {
+      // Validate name if you decide to make it required in the frontend form
+      if (document.getElementById("name-error"))
+        document.getElementById("name-error").style.display = "block";
+      isValid = false;
+    }
 
     if (isValid) {
-      // Check if username already exists
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      if (users.some((u) => u.username === username)) {
-        document.getElementById("new-username-error").textContent =
-          "Username already exists";
-        document.getElementById("new-username-error").style.display = "block";
-        return;
-      }
+      // Send signup request to backend, include 'name' in body
+      fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, email, password, name }), // Include name in signup request
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (response.ok) {
+            // Signup successful
+            document.getElementById("signup-success").style.display = "block";
 
-      // Add new user to local storage
-      const newUser = { username, email, password };
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
-
-      // Show success message
-      document.getElementById("signup-success").style.display = "block";
-
-      // Close modal and show login after delay
-      setTimeout(() => {
-        hideModal(document.getElementById("signup-modal"));
-        showNotification(
-          "Account Created",
-          "Your account has been created successfully!",
-          "success"
-        );
-        setTimeout(() => {
-          showModal(document.getElementById("login-modal"));
-        }, 1000);
-      }, 1000);
+            // Close modal and show login modal after delay
+            setTimeout(() => {
+              hideModal(document.getElementById("signup-modal"));
+              showNotification(
+                "Account Created",
+                "Your account has been created successfully!",
+                "success"
+              );
+              setTimeout(() => {
+                showModal(document.getElementById("login-modal"));
+              }, 1000);
+            }, 1000);
+          } else {
+            // Signup failed
+            document.getElementById("new-username-error").textContent =
+              data.message || "Signup failed";
+            document.getElementById("new-username-error").style.display =
+              "block";
+            showNotification(
+              "Signup Failed",
+              data.message || "Failed to create account",
+              "error"
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error during signup:", error);
+          showNotification(
+            "Signup Error",
+            "Failed to connect to server",
+            "error"
+          );
+        });
     }
   });
 };
 
-// Update UI for logged in user
+// Update UI for logged in user (Slight change to use user.name from response)
 const updateUserUI = (user) => {
   const loginBtn = document.getElementById("login-btn");
   const userMenu = document.getElementById("user-menu");
@@ -654,8 +700,10 @@ const updateUserUI = (user) => {
   // Show user menu
   userMenu.style.display = "block";
 
-  // Update avatar placeholder with user initials
-  const initials = user.username.substring(0, 2).toUpperCase();
+  // Update avatar placeholder with user initials - using user.name now
+  const initials = user.name
+    ? user.name.substring(0, 2).toUpperCase()
+    : user.username.substring(0, 2).toUpperCase(); // Fallback to username if name is missing
   userAvatarPlaceholder.textContent = initials;
 
   // Setup user dropdown
@@ -671,7 +719,7 @@ const updateUserUI = (user) => {
     }
   });
 
-  // Logout functionality
+  // Logout functionality (No changes needed)
   document.getElementById("logout-btn").addEventListener("click", (e) => {
     e.preventDefault();
     localStorage.removeItem("loggedInUser");
@@ -686,7 +734,7 @@ const updateUserUI = (user) => {
   });
 };
 
-// Check if user is logged in
+// Check if user is logged in (No changes needed)
 const checkLoggedInStatus = () => {
   const loggedInUser = localStorage.getItem("loggedInUser");
   if (loggedInUser) {
@@ -694,7 +742,7 @@ const checkLoggedInStatus = () => {
   }
 };
 
-// Show notification
+// Show notification (No changes needed)
 const showNotification = (title, message, type = "info") => {
   const notification = document.getElementById("notification");
   const notificationTitle = notification.querySelector(".notification-title");
@@ -715,30 +763,30 @@ const showNotification = (title, message, type = "info") => {
   switch (type) {
     case "success":
       notificationIcon.innerHTML = `
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    `;
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    `;
       break;
     case "error":
       notificationIcon.innerHTML = `
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    `;
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    `;
       break;
     case "warning":
       notificationIcon.innerHTML = `
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                        <line x1="12" y1="9" x2="12" y2="13"></line>
-                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    `;
+                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                    `;
       break;
     default:
       notificationIcon.innerHTML = `
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    `;
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    `;
   }
 
   // Show notification
