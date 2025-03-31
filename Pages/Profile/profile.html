@@ -15,7 +15,7 @@
             <li><a href="book.html">My Bookings</a></li>
             <li><a href="#" class="active">Profile</a></li>
             <li><a href="#">Support</a></li>
-            <li><a href="#" class="logout-btn">Logout</a></li>
+            <li><a href="#" class="logout-btn" id="logout-btn">Logout</a></li>
           </ul>
         </nav>
       </header>
@@ -24,21 +24,21 @@
         <section class="profile-header">
           <div class="profile-cover"></div>
           <div class="profile-info">
-            <div class="profile-avatar"></div>
+            <div class="profile-avatar" id="profile-avatar"></div>
             <div class="profile-details">
-              <h1 id="user-name">John Doe</h1>
-              <p id="user-email">john.doe@example.com</p>
+              <h1 id="user-name">Loading...</h1>
+              <p id="user-email">Loading...</p>
               <div class="profile-stats">
                 <div class="stat">
-                  <span class="stat-value" id="total-rides">24</span>
+                  <span class="stat-value" id="total-rides">0</span>
                   <span class="stat-label">Rides</span>
                 </div>
                 <div class="stat">
-                  <span class="stat-value" id="member-since">2023</span>
+                  <span class="stat-value" id="member-since">-</span>
                   <span class="stat-label">Member Since</span>
                 </div>
                 <div class="stat">
-                  <span class="stat-value" id="saved-places">5</span>
+                  <span class="stat-value" id="saved-places">0</span>
                   <span class="stat-label">Saved Places</span>
                 </div>
               </div>
@@ -64,29 +64,27 @@
           <div class="info-card">
             <div class="info-group">
               <label>Full Name</label>
-              <p id="full-name">John Michael Doe</p>
+              <p id="full-name">Loading...</p>
             </div>
             <div class="info-group">
               <label>Phone Number</label>
-              <p id="phone-number">+1 (555) 123-4567</p>
+              <p id="phone-number">Loading...</p>
             </div>
             <div class="info-group">
               <label>Email Address</label>
-              <p id="email-address">john.doe@example.com</p>
+              <p id="email-address">Loading...</p>
             </div>
             <div class="info-group">
               <label>Date of Birth</label>
-              <p id="date-of-birth">January 15, 1985</p>
+              <p id="date-of-birth">Loading...</p>
             </div>
             <div class="info-group">
               <label>Home Address</label>
-              <p id="home-address">
-                123 Main Street, Apt 4B, Cityville, NY 10001
-              </p>
+              <p id="home-address">Loading...</p>
             </div>
             <div class="info-group">
               <label>Emergency Contact</label>
-              <p id="emergency-contact">Jane Doe - +1 (555) 987-6543</p>
+              <p id="emergency-contact">Loading...</p>
             </div>
           </div>
         </section>
@@ -95,8 +93,8 @@
           <h2>Ride History</h2>
           <div class="filter-bar">
             <div class="search-box">
-              <input type="text" placeholder="Search rides..." />
-              <button class="search-btn">Search</button>
+              <input type="text" placeholder="Search rides..." id="search-rides" />
+              <button class="search-btn" id="search-btn">Search</button>
             </div>
             <div class="filter-options">
               <select id="time-filter">
@@ -114,6 +112,7 @@
 
           <div class="rides-list" id="rides-container">
             <!-- Ride history items will be populated by JavaScript -->
+            <div class="loading-indicator">Loading ride history...</div>
           </div>
         </section>
 
@@ -122,6 +121,7 @@
           <div class="payment-methods-container">
             <div class="payment-cards" id="payment-cards-container">
               <!-- Payment cards will be populated by JavaScript -->
+              <div class="loading-indicator">Loading payment methods...</div>
             </div>
 
             <button id="add-payment-method" class="add-btn">
@@ -135,6 +135,7 @@
           <h2>Saved Places</h2>
           <div class="saved-places-container" id="saved-places-container">
             <!-- Saved places will be populated by JavaScript -->
+            <div class="loading-indicator">Loading saved places...</div>
           </div>
 
           <button id="add-saved-place" class="add-btn">
@@ -254,8 +255,8 @@
           </div>
           <div class="footer-section">
             <h3>Contact Us</h3>
-            <p>Email: atharvadhemare@gmail.com</p>
-            <p>Phone: +1 (555) 123-4567</p>
+            <p>Email: <span id="contact-email">support@faresy.com</span></p>
+            <p>Phone: <span id="contact-phone">0987654321</span></p>
           </div>
         </div>
         <div class="footer-bottom">
@@ -264,6 +265,67 @@
       </footer>
     </div>
 
+    <!-- Notification element -->
+    <div class="notification" id="notification">
+      <div class="notification-content">
+        <div class="notification-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </div>
+        <div class="notification-text">
+          <h4 class="notification-title">Information</h4>
+          <p class="notification-message">This is a notification message.</p>
+        </div>
+        <button class="notification-close">&times;</button>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="edit-profile-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Edit Profile</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-profile-form">
+            <div class="form-group">
+              <label for="edit-full-name">Full Name</label>
+              <input type="text" id="edit-full-name" name="fullName" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-email">Email</label>
+              <input type="email" id="edit-email" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-phone">Phone Number</label>
+              <input type="tel" id="edit-phone" name="phone" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-dob">Date of Birth</label>
+              <input type="date" id="edit-dob" name="dob">
+            </div>
+            <div class="form-group">
+              <label for="edit-address">Home Address</label>
+              <textarea id="edit-address" name="address" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="edit-emergency">Emergency Contact</label>
+              <input type="text" id="edit-emergency" name="emergency">
+            </div>
+            <div class="form-actions">
+              <button type="button" class="cancel-btn">Cancel</button>
+              <button type="submit" class="save-btn">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <script src="profile.js"></script>
   </body>
 </html>
+

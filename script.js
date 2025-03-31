@@ -115,11 +115,38 @@ const initMap = () => {
   return map;
 };
 
+// API base URL - change this to your production URL when deploying
+const API_BASE_URL = "http://localhost:3000/api";
+
+// Fetch with error handling
+const fetchAPI = async (endpoint, options = {}) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Something went wrong");
+    }
+
+    return data;
+  } catch (error) {
+    console.error(`API Error (${endpoint}):`, error);
+    throw error;
+  }
+};
+
 // Cab Search Form Submission
 const setupSearchForm = (map) => {
   document
     .getElementById("cab-search-form")
-    .addEventListener("submit", function (e) {
+    .addEventListener("submit", async function (e) {
       e.preventDefault();
 
       // Get form values
@@ -132,8 +159,19 @@ const setupSearchForm = (map) => {
       // Show loading indicator
       document.getElementById("loading").style.display = "block";
 
-      // Simulate API call delay
-      setTimeout(function () {
+      try {
+        // Call the API to get cab prices
+        const data = await fetchAPI("/get-cab-prices", {
+          method: "POST",
+          body: JSON.stringify({
+            pickup,
+            destination,
+            date,
+            time,
+            passengers,
+          }),
+        });
+
         // Hide loading indicator
         document.getElementById("loading").style.display = "none";
 
@@ -147,11 +185,14 @@ const setupSearchForm = (map) => {
           passengers > 1 ? "s" : ""
         }`;
 
-        // Generate mock cab data
-        const cabData = generateMockCabData(pickup, destination);
-
         // Display cab cards
-        displayCabCards(cabData);
+        displayCabCards(data.cabPrices, {
+          pickup,
+          destination,
+          date,
+          time,
+          passengers,
+        });
 
         // Update map
         updateMap(map, pickup, destination);
@@ -167,53 +208,22 @@ const setupSearchForm = (map) => {
           "We found the best cab options for your trip!",
           "success"
         );
-      }, 2000);
+      } catch (error) {
+        // Hide loading indicator
+        document.getElementById("loading").style.display = "none";
+
+        // Show error notification
+        showNotification(
+          "Error",
+          error.message || "Failed to fetch cab prices. Please try again.",
+          "error"
+        );
+      }
     });
 };
 
-// Generate mock cab data
-const generateMockCabData = (pickup, destination) => {
-  // Calculate a base price based on the length of the pickup and destination strings
-  // This is just for demo purposes to create somewhat realistic looking prices
-  const baseDistance = ((pickup.length + destination.length) % 10) + 5;
-  const basePrice = baseDistance * 2.5;
-
-  return [
-    {
-      name: "Uber",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Uber_App_Icon.svg/240px-Uber_App_Icon.svg.png",
-      price: (basePrice * 1.1).toFixed(2),
-      priceChange: "-5%",
-      currency: "$",
-      eta: Math.floor(Math.random() * 5) + 3,
-      type: "UberX",
-      distance: baseDistance.toFixed(1),
-    },
-    {
-      name: "Lyft",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Lyft_logo.svg/240px-Lyft_logo.svg.png",
-      price: (basePrice * 0.95).toFixed(2),
-      priceChange: "-10%",
-      currency: "$",
-      eta: Math.floor(Math.random() * 5) + 2,
-      type: "Lyft Standard",
-      distance: baseDistance.toFixed(1),
-    },
-    {
-      name: "Cabify",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Cabify_logo.svg/240px-Cabify_logo.svg.png",
-      price: (basePrice * 1.05).toFixed(2),
-      priceChange: "-3%",
-      currency: "$",
-      eta: Math.floor(Math.random() * 4) + 3,
-      type: "Lite",
-      distance: baseDistance.toFixed(1),
-    },
-  ];
-};
-
 // Display cab cards
-const displayCabCards = (cabData) => {
+const displayCabCards = (cabData, searchParams) => {
   const cabCardsContainer = document.getElementById("cab-cards");
   cabCardsContainer.innerHTML = "";
 
@@ -227,40 +237,40 @@ const displayCabCards = (cabData) => {
     cabCard.style.animationDelay = `${index * 0.1}s`;
 
     let cabCardHTML = `
-                    <div class="cab-card-header">
-                        <img src="${cab.logo}" alt="${cab.name}" class="cab-logo">
-                        <span>${cab.name}</span>
-                    </div>
-                    <div class="cab-card-body">
-                        <div class="cab-price">
-                            ${cab.currency}${cab.price}
-                            <span class="cab-price-change">${cab.priceChange}</span>
-                        </div>
-                        <div class="cab-details">
-                            <div class="cab-detail">
-                                <span class="cab-detail-label">Type</span>
-                                <span class="cab-detail-value">${cab.type}</span>
-                            </div>
-                            <div class="cab-detail">
-                                <span class="cab-detail-label">ETA</span>
-                                <span class="cab-detail-value">${cab.eta} min</span>
-                            </div>
-                            <div class="cab-detail">
-                                <span class="cab-detail-label">Distance</span>
-                                <span class="cab-detail-value">${cab.distance} miles</span>
-                            </div>
-                        </div>
-                        <a href="Pages/Book/book.html" class="btn btn-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="1" y="3" width="15" height="13"></rect>
-                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
-                            </svg>
-                            Book Now
-                        </a>
-                    </div>
-                `;
+      <div class="cab-card-header">
+        <img src="${cab.logo}" alt="${cab.name}" class="cab-logo">
+        <span>${cab.name}</span>
+      </div>
+      <div class="cab-card-body">
+        <div class="cab-price">
+          ${cab.currency}${cab.price}
+          <span class="cab-price-change">${cab.priceChange}</span>
+        </div>
+        <div class="cab-details">
+          <div class="cab-detail">
+            <span class="cab-detail-label">Type</span>
+            <span class="cab-detail-value">${cab.type}</span>
+          </div>
+          <div class="cab-detail">
+            <span class="cab-detail-label">ETA</span>
+            <span class="cab-detail-value">${cab.eta} min</span>
+          </div>
+          <div class="cab-detail">
+            <span class="cab-detail-label">Distance</span>
+            <span class="cab-detail-value">${cab.distance} miles</span>
+          </div>
+        </div>
+        <button class="btn btn-icon book-now-btn" data-cab-provider-id="${cab.id}" data-price="${cab.price}">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="3" width="15" height="13"></rect>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+          </svg>
+          Book Now
+        </button>
+      </div>
+    `;
 
     cabCard.innerHTML = cabCardHTML;
     cabCardsContainer.appendChild(cabCard);
@@ -269,6 +279,45 @@ const displayCabCards = (cabData) => {
     setTimeout(() => {
       cabCard.classList.add("animate");
     }, 100);
+  });
+
+  // Add event listeners to book now buttons
+  document.querySelectorAll(".book-now-btn").forEach((button) => {
+    button.addEventListener("click", async function () {
+
+      // Check if user is logged in
+      try {
+        // const loginStatus = await fetchAPI("/check-login");
+
+        // if (!loginStatus.success) {
+        //   // Show login modal if not logged in
+        //   showModal(document.getElementById("login-modal"));
+        //   showNotification(
+        //     "Login Required",
+        //     "Please log in to book a ride",
+        //     "info"
+        //   );
+        //   return;
+        // }
+
+        // Redirect to book.html with booking details
+        window.location.href = `Pages/Book/book.html`;
+
+        // Show success notification
+        showNotification(
+          "Booking Successful",
+          `Your ride has been booked! Estimated fare: $${bookingData.estimated_fare}`,
+          "success"
+        );
+      } catch (error) {
+        // Show error notification
+        showNotification(
+          "Booking Failed",
+          error.message || "Failed to book your ride. Please try again.",
+          "error"
+        );
+      }
+    });
   });
 };
 
@@ -300,21 +349,21 @@ const updateMap = (map, pickup, destination) => {
   // Add markers for pickup and destination with custom HTML
   const pickupMarker = document.createElement("div");
   pickupMarker.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#4cc9f0" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-            `;
+    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#4cc9f0" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+  `;
   pickupMarker.style.width = "30px";
   pickupMarker.style.height = "30px";
 
   const destinationMarker = document.createElement("div");
   destinationMarker.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#4361ee" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-            `;
+    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#4361ee" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+      <circle cx="12" cy="10" r="3"></circle>
+    </svg>
+  `;
   destinationMarker.style.width = "30px";
   destinationMarker.style.height = "30px";
 
@@ -405,6 +454,39 @@ const updateMap = (map, pickup, destination) => {
   } else {
     map.on("load", animateLine);
   }
+
+  // Fetch and display nearby cabs
+  fetchAPI("/cab-locations")
+    .then((data) => {
+      if (data.success && data.locations.length > 0) {
+        // Add nearby cabs to the map
+        data.locations.forEach((location) => {
+          const cabMarker = document.createElement("div");
+          cabMarker.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#f72585" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="3" width="15" height="13"></rect>
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+          `;
+          cabMarker.style.width = "24px";
+          cabMarker.style.height = "24px";
+
+          new mapboxgl.Marker(cabMarker)
+            .setLngLat([location.longitude, location.latitude])
+            .setPopup(
+              new mapboxgl.Popup({ offset: 25 }).setHTML(
+                `<h3>${location.provider_name}</h3><p>${location.model} (${location.color})</p>`
+              )
+            )
+            .addTo(map);
+        });
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching cab locations:", error);
+    });
 };
 
 // Set today's date as the default
@@ -515,177 +597,129 @@ const setupFormValidation = () => {
   const loginForm = document.getElementById("login-form");
   const signupForm = document.getElementById("signup-form");
 
-  loginForm.addEventListener("submit", function (e) {
+  // Form Validation Function
+  const validateForm = (fields) => {
+    let isValid = true;
+
+    fields.forEach((field) => {
+      const element = document.getElementById(field.id);
+      const errorElement = document.getElementById(`${field.id}-error`);
+      if (!element || (field.required && !element.value)) {
+        errorElement.style.display = "block";
+        isValid = false;
+      } else {
+        errorElement.style.display = "none";
+      }
+    });
+
+    return isValid;
+  };
+
+  // Login Form Submission
+  loginForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
-    let isValid = true;
 
-    // Reset errors
-    document.getElementById("username-error").style.display = "none";
-    document.getElementById("password-error").style.display = "none";
-    document.getElementById("login-success").style.display = "none"; // Hide success message on new submit
-
-    if (!username) {
-      document.getElementById("username-error").style.display = "block";
-      isValid = false;
-    }
-
-    if (!password) {
-      document.getElementById("password-error").style.display = "block";
-      isValid = false;
-    }
+    // Validate login form
+    const isValid = validateForm([
+      { id: "username", required: true },
+      { id: "password", required: true },
+    ]);
 
     if (isValid) {
-      // Send login request to backend
-      fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (response.ok) {
-            // Login successful
-            document.getElementById("login-success").style.display = "block";
-
-            // Store logged in user (Consider session/token based auth for real app)
-            localStorage.setItem("loggedInUser", JSON.stringify(data.user));
-
-            // Update UI
-            updateUserUI(data.user);
-
-            // Close modal and show welcome message
-            setTimeout(() => {
-              hideModal(document.getElementById("login-modal"));
-              showNotification(
-                "Welcome back!",
-                `You're now logged in as ${data.user.username}`, // Using username from response
-                "success"
-              );
-            }, 1000);
-          } else {
-            // Login failed
-            showNotification(
-              "Login Failed",
-              data.message || "Invalid username or password",
-              "error"
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("Error during login:", error);
-          showNotification(
-            "Login Error",
-            "Failed to connect to server",
-            "error"
-          );
+      try {
+        // Send login request to backend
+        const data = await fetchAPI("/login", {
+          method: "POST",
+          body: JSON.stringify({ username, password }),
         });
+
+        // Login successful
+        document.getElementById("login-success").style.display = "block";
+
+        // Update UI
+        updateUserUI(data.user);
+
+        // Close modal and show welcome message
+        setTimeout(() => {
+          hideModal(document.getElementById("login-modal"));
+          showNotification(
+            "Welcome back!",
+            `You're now logged in as ${data.user.username}`,
+            "success"
+          );
+        }, 1000);
+      } catch (error) {
+        // Login failed
+        showNotification(
+          "Login Failed",
+          error.message || "Invalid username or password",
+          "error"
+        );
+      }
     }
   });
 
-  signupForm.addEventListener("submit", function (e) {
+  // Signup Form Submission
+  signupForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     const username = document.getElementById("new-username").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("new-password").value;
     const confirmPassword = document.getElementById("confirm-password").value;
-    // Get name field if you added it to your signup form in HTML
-    const name = document.getElementById("name")
-      ? document.getElementById("name").value
-      : ""; // Optional name field
-    let isValid = true;
 
-    // Reset errors
-    document.getElementById("new-username-error").style.display = "none";
-    document.getElementById("email-error").style.display = "none";
-    document.getElementById("new-password-error").style.display = "none";
-    document.getElementById("confirm-password-error").style.display = "none";
-    document.getElementById("signup-success").style.display = "none"; // Hide success message on new submit
-    if (document.getElementById("name-error"))
-      document.getElementById("name-error").style.display = "none"; // Reset name error if present
-
-    if (!username || username.length < 3) {
-      document.getElementById("new-username-error").style.display = "block";
-      isValid = false;
-    }
-
-    if (!email || !email.includes("@")) {
-      document.getElementById("email-error").style.display = "block";
-      isValid = false;
-    }
-
-    if (!password || password.length < 6) {
-      document.getElementById("new-password-error").style.display = "block";
-      isValid = false;
-    }
-
-    if (password !== confirmPassword) {
-      document.getElementById("confirm-password-error").style.display = "block";
-      isValid = false;
-    }
-    if (!name) {
-      // Validate name if you decide to make it required in the frontend form
-      if (document.getElementById("name-error"))
-        document.getElementById("name-error").style.display = "block";
-      isValid = false;
-    }
+    // Validate signup form
+    const isValid = validateForm([
+      { id: "new-username", required: true },
+      { id: "email", required: true },
+      { id: "new-password", required: true },
+      { id: "confirm-password", required: true },
+    ]);
 
     if (isValid) {
-      // Send signup request to backend, include 'name' in body
-      fetch("/api/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, email, password, name }), // Include name in signup request
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (response.ok) {
-            // Signup successful
-            document.getElementById("signup-success").style.display = "block";
+      // Check if password and confirm password match
+      if (password !== confirmPassword) {
+        document.getElementById("confirm-password-error").style.display =
+          "block";
+        return;
+      }
 
-            // Close modal and show login modal after delay
-            setTimeout(() => {
-              hideModal(document.getElementById("signup-modal"));
-              showNotification(
-                "Account Created",
-                "Your account has been created successfully!",
-                "success"
-              );
-              setTimeout(() => {
-                showModal(document.getElementById("login-modal"));
-              }, 1000);
-            }, 1000);
-          } else {
-            // Signup failed
-            document.getElementById("new-username-error").textContent =
-              data.message || "Signup failed";
-            document.getElementById("new-username-error").style.display =
-              "block";
-            showNotification(
-              "Signup Failed",
-              data.message || "Failed to create account",
-              "error"
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("Error during signup:", error);
-          showNotification(
-            "Signup Error",
-            "Failed to connect to server",
-            "error"
-          );
+      try {
+        // Send signup request to backend
+        const data = await fetchAPI("/signup", {
+          method: "POST",
+          body: JSON.stringify({ username, email, password }),
         });
+
+        // Signup successful
+        document.getElementById("signup-success").style.display = "block";
+
+        // Close modal and show login modal after delay
+        setTimeout(() => {
+          hideModal(document.getElementById("signup-modal"));
+          showNotification(
+            "Account Created",
+            "Your account has been created successfully!",
+            "success"
+          );
+          setTimeout(() => {
+            showModal(document.getElementById("login-modal"));
+          }, 1000);
+        }, 1000);
+      } catch (error) {
+        // Signup failed
+        showNotification(
+          "Signup Failed",
+          error.message || "Failed to create account",
+          "error"
+        );
+      }
     }
   });
 };
 
-// Update UI for logged in user (Slight change to use user.name from response)
+// Update UI for logged in user
 const updateUserUI = (user) => {
   const loginBtn = document.getElementById("login-btn");
   const userMenu = document.getElementById("user-menu");
@@ -700,10 +734,8 @@ const updateUserUI = (user) => {
   // Show user menu
   userMenu.style.display = "block";
 
-  // Update avatar placeholder with user initials - using user.name now
-  const initials = user.name
-    ? user.name.substring(0, 2).toUpperCase()
-    : user.username.substring(0, 2).toUpperCase(); // Fallback to username if name is missing
+  // Update avatar placeholder with user initials
+  const initials = user.username.substring(0, 2).toUpperCase();
   userAvatarPlaceholder.textContent = initials;
 
   // Setup user dropdown
@@ -719,30 +751,89 @@ const updateUserUI = (user) => {
     }
   });
 
-  // Logout functionality (No changes needed)
-  document.getElementById("logout-btn").addEventListener("click", (e) => {
+  // Logout functionality
+  document.getElementById("logout-btn").addEventListener("click", async (e) => {
     e.preventDefault();
-    localStorage.removeItem("loggedInUser");
-    userMenu.style.display = "none";
-    loginBtn.style.display = "block";
-    userDropdown.classList.remove("active");
-    showNotification(
-      "Logged Out",
-      "You have been logged out successfully",
-      "info"
-    );
+
+    try {
+      // Send logout request to backend to invalidate session
+      const data = await fetchAPI("/logout", {
+        method: "POST",
+      });
+
+      // Clear user data and update UI
+      userMenu.style.display = "none";
+      loginBtn.style.display = "block";
+      userDropdown.classList.remove("active");
+      showNotification(
+        "Logged Out",
+        "You have been logged out successfully",
+        "info"
+      );
+    } catch (error) {
+      showNotification(
+        "Logout Failed",
+        error.message || "Failed to log out",
+        "error"
+      );
+    }
   });
+
+  // Fetch user preferences
+  fetchAPI(`/user-preferences/${user.id}`)
+    .then((data) => {
+      if (data.success && data.preferences) {
+        // Store preferences in localStorage for easy access
+        localStorage.setItem(
+          "userPreferences",
+          JSON.stringify(data.preferences)
+        );
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching user preferences:", error);
+    });
+
+  // Fetch user bookings
+  fetchAPI(`/user-bookings/${user.id}`)
+    .then((data) => {
+      if (data.success && data.bookings && data.bookings.length > 0) {
+        // Show notification about recent booking if any
+        const recentBooking = data.bookings[0];
+        if (
+          recentBooking.status === "pending" ||
+          recentBooking.status === "confirmed"
+        ) {
+          showNotification(
+            "Active Booking",
+            `You have an ${recentBooking.status} booking from ${recentBooking.pickup} to ${recentBooking.destination}`,
+            "info"
+          );
+        }
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching user bookings:", error);
+    });
 };
 
-// Check if user is logged in (No changes needed)
-const checkLoggedInStatus = () => {
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  if (loggedInUser) {
-    updateUserUI(JSON.parse(loggedInUser));
+// Check if user is logged in
+const checkLoggedInStatus = async () => {
+  try {
+    // Send request to backend to check login status
+    const data = await fetchAPI("/check-login", {
+      method: "GET",
+    });
+
+    if (data.success) {
+      updateUserUI(data.user);
+    }
+  } catch (error) {
+    console.error("Error checking login status:", error);
   }
 };
 
-// Show notification (No changes needed)
+// Show notification
 const showNotification = (title, message, type = "info") => {
   const notification = document.getElementById("notification");
   const notificationTitle = notification.querySelector(".notification-title");
@@ -877,6 +968,79 @@ const setupThemeToggle = () => {
   });
 };
 
+// Scroll to top functionality
+const setupScrollToTop = () => {
+  const scrollTopBtn = document.getElementById("scroll-top");
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 300) {
+      scrollTopBtn.classList.add("show");
+    } else {
+      scrollTopBtn.classList.remove("show");
+    }
+  });
+
+  scrollTopBtn.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  });
+};
+
+// Apply promotion code
+const setupPromotionCode = () => {
+  const promoForm = document.getElementById("promo-form");
+  if (promoForm) {
+    promoForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const promoCode = document.getElementById("promo-code").value;
+      const totalAmount = document.getElementById("total-amount").value;
+
+      if (!promoCode || !totalAmount) {
+        showNotification(
+          "Error",
+          "Please enter a promotion code and total amount",
+          "error"
+        );
+        return;
+      }
+
+      try {
+        // Send request to apply promotion
+        const data = await fetchAPI("/apply-promotion", {
+          method: "POST",
+          body: JSON.stringify({
+            code: promoCode,
+            amount: totalAmount,
+          }),
+        });
+
+        // Update UI with discounted price
+        document.getElementById(
+          "discounted-amount"
+        ).textContent = `$${data.discounted_total}`;
+        document.getElementById("discount-info").style.display = "block";
+
+        // Show success notification
+        showNotification(
+          "Promotion Applied",
+          `${data.message}. You saved $${data.discount_amount}!`,
+          "success"
+        );
+      } catch (error) {
+        // Show error notification
+        showNotification(
+          "Invalid Promotion",
+          error.message || "Failed to apply promotion code",
+          "error"
+        );
+      }
+    });
+  }
+};
+
 // Initialize everything when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize map
@@ -895,6 +1059,7 @@ document.addEventListener("DOMContentLoaded", () => {
   checkLoggedInStatus();
   setupThemeToggle();
   setupScrollToTop();
+  setupPromotionCode();
 
   // Show welcome notification
   setTimeout(() => {

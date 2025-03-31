@@ -16,8 +16,8 @@
       <main>
         <section id="booking-details">
           <div class="booking-header">
-            <h2>Booking #<span id="booking-id">CAB12345</span></h2>
-            <div class="booking-status">Confirmed</div>
+            <h2>Booking #<span id="booking-id">Loading...</span></h2>
+            <div class="booking-status" id="booking-status">Pending</div>
           </div>
 
           <div class="details-grid">
@@ -25,15 +25,15 @@
               <h3>User Details</h3>
               <div class="details-content">
                 <p>
-                  <strong>Name:</strong> <span id="user-name">John Doe</span>
+                  <strong>Name:</strong> <span id="user-name">Loading...</span>
                 </p>
                 <p>
                   <strong>Phone:</strong>
-                  <span id="user-phone">555-123-4567</span>
+                  <span id="user-phone">Loading...</span>
                 </p>
                 <p>
                   <strong>Email:</strong>
-                  <span id="user-email">john.doe@example.com</span>
+                  <span id="user-email">Loading...</span>
                 </p>
               </div>
             </div>
@@ -44,24 +44,24 @@
                 <div class="driver-profile">
                   <div class="driver-avatar"></div>
                   <div class="driver-info">
-                    <p class="driver-name" id="driver-name">Michael Chen</p>
+                    <p class="driver-name" id="driver-name">Loading...</p>
                     <p class="driver-rating">
-                      <span id="driver-rating">4.8</span>
+                      <span id="driver-rating">0</span>
                       <span class="stars">★★★★★</span>
                     </p>
                   </div>
                 </div>
                 <p>
                   <strong>License:</strong>
-                  <span id="driver-license">DL-987654</span>
+                  <span id="driver-license">Loading...</span>
                 </p>
                 <p>
                   <strong>Phone:</strong>
-                  <span id="driver-phone">555-987-6543</span>
+                  <span id="driver-phone">Loading...</span>
                 </p>
                 <p>
                   <strong>Experience:</strong>
-                  <span id="driver-experience">5 years</span>
+                  <span id="driver-experience">Loading...</span>
                 </p>
               </div>
             </div>
@@ -72,14 +72,14 @@
                 <div class="cab-image"></div>
                 <p>
                   <strong>Vehicle:</strong>
-                  <span id="cab-model">Toyota Camry</span>
+                  <span id="cab-model">Loading...</span>
                 </p>
-                <p><strong>Color:</strong> <span id="cab-color">White</span></p>
+                <p><strong>Color:</strong> <span id="cab-color">Loading...</span></p>
                 <p>
                   <strong>License Plate:</strong>
-                  <span id="cab-plate">ABC 123</span>
+                  <span id="cab-plate">Loading...</span>
                 </p>
-                <p><strong>ETA:</strong> <span id="cab-eta">7 minutes</span></p>
+                <p><strong>ETA:</strong> <span id="cab-eta">Loading...</span></p>
               </div>
             </div>
           </div>
@@ -92,9 +92,9 @@
                 <div class="point-details">
                   <p class="point-type">Pickup</p>
                   <p class="point-address" id="pickup-address">
-                    123 Main Street, Cityville
+                    Loading...
                   </p>
-                  <p class="point-time" id="pickup-time">Today, 2:30 PM</p>
+                  <p class="point-time" id="pickup-time">Loading...</p>
                 </div>
               </div>
               <div class="trip-line"></div>
@@ -103,13 +103,22 @@
                 <div class="point-details">
                   <p class="point-type">Destination</p>
                   <p class="point-address" id="destination-address">
-                    456 Park Avenue, Townsville
+                    Loading...
                   </p>
                   <p class="point-time" id="destination-time">
-                    Today, 3:15 PM (estimated)
+                    Loading...
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div class="payment-details">
+            <h3>Payment Details</h3>
+            <div class="payment-content">
+              <p><strong>Amount:</strong> $<span id="payment-amount">0.00</span></p>
+              <p><strong>Status:</strong> <span id="payment-status">Pending</span></p>
+              <p><strong>Method:</strong> <span id="payment-method">Credit Card</span></p>
             </div>
           </div>
 
@@ -121,6 +130,7 @@
           <div class="action-buttons">
             <button id="contact-driver">Contact Driver</button>
             <button id="cancel-booking">Cancel Booking</button>
+            <button id="complete-booking">Complete Ride</button>
           </div>
         </section>
       </main>
@@ -138,3 +148,4 @@
     <script src="book.js"></script>
   </body>
 </html>
+
